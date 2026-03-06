@@ -4,31 +4,49 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Camera, ChevronRight } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const causes = [
-  "Elder Companionship",
-  "Child Education",
-  "Mentoring Youth",
-  "Rehabilitation Support",
-  "Orphanage Assistance",
-  "Disaster Relief",
-  "Community Health",
-  "Environmental Action",
-];
-
-const skills = ["Teaching", "Counseling", "Medical", "Tech", "Creative Arts", "Sports", "Music", "Cooking"];
-const languages = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Malayalam", "Bengali", "Marathi"];
+const causes = ["Elder Companionship", "Child Education", "Mentoring Youth", "Rehabilitation Support", "Orphanage Assistance", "Disaster Relief", "Community Health", "Environmental Action"];
+const skillsList = ["Teaching", "Counseling", "Medical", "Tech", "Creative Arts", "Sports", "Music", "Cooking"];
+const languagesList = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Malayalam", "Bengali", "Marathi"];
 
 const VolunteerOnboarding = () => {
   const navigate = useNavigate();
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
+  const [fullName, setFullName] = useState("");
+  const [location, setLocation] = useState("");
+  const [weeklyHours, setWeeklyHours] = useState("");
   const [selectedCauses, setSelectedCauses] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const toggleItem = (item: string, list: string[], setList: (l: string[]) => void) => {
     setList(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
+  };
+
+  const handleFinish = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({
+      full_name: fullName || undefined,
+      location: location || undefined,
+      weekly_availability: weeklyHours ? parseInt(weeklyHours) : 0,
+      skills: selectedSkills,
+      languages: selectedLanguages,
+      causes: selectedCauses,
+      is_active: isActive,
+    }).eq("user_id", user.id);
+
+    setSaving(false);
+    if (error) { toast.error("Failed to save profile"); return; }
+    await refreshProfile();
+    toast.success("Profile saved!");
+    navigate("/dashboard");
   };
 
   const steps = [
@@ -41,9 +59,9 @@ const VolunteerOnboarding = () => {
               <Camera className="w-8 h-8 text-muted-foreground" />
             </div>
           </div>
-          <Input placeholder="Full Name" className="h-12 rounded-xl bg-card" />
-          <Input placeholder="Location (City)" className="h-12 rounded-xl bg-card" />
-          <Input placeholder="Weekly hours available" type="number" className="h-12 rounded-xl bg-card" />
+          <Input placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-12 rounded-xl bg-card" />
+          <Input placeholder="Location (City)" value={location} onChange={(e) => setLocation(e.target.value)} className="h-12 rounded-xl bg-card" />
+          <Input placeholder="Weekly hours available" type="number" value={weeklyHours} onChange={(e) => setWeeklyHours(e.target.value)} className="h-12 rounded-xl bg-card" />
         </div>
       ),
     },
@@ -51,16 +69,8 @@ const VolunteerOnboarding = () => {
       title: "Your Skills",
       content: (
         <div className="flex flex-wrap gap-2">
-          {skills.map((s) => (
-            <button
-              key={s}
-              onClick={() => toggleItem(s, selectedSkills, setSelectedSkills)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedSkills.includes(s)
-                  ? "katha-gradient text-primary-foreground"
-                  : "bg-card border border-border text-foreground"
-              }`}
-            >
+          {skillsList.map((s) => (
+            <button key={s} onClick={() => toggleItem(s, selectedSkills, setSelectedSkills)} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedSkills.includes(s) ? "katha-gradient text-primary-foreground" : "bg-card border border-border text-foreground"}`}>
               {s}
             </button>
           ))}
@@ -71,16 +81,8 @@ const VolunteerOnboarding = () => {
       title: "Languages",
       content: (
         <div className="flex flex-wrap gap-2">
-          {languages.map((l) => (
-            <button
-              key={l}
-              onClick={() => toggleItem(l, selectedLanguages, setSelectedLanguages)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedLanguages.includes(l)
-                  ? "katha-gradient text-primary-foreground"
-                  : "bg-card border border-border text-foreground"
-              }`}
-            >
+          {languagesList.map((l) => (
+            <button key={l} onClick={() => toggleItem(l, selectedLanguages, setSelectedLanguages)} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedLanguages.includes(l) ? "katha-gradient text-primary-foreground" : "bg-card border border-border text-foreground"}`}>
               {l}
             </button>
           ))}
@@ -93,15 +95,7 @@ const VolunteerOnboarding = () => {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {causes.map((c) => (
-              <button
-                key={c}
-                onClick={() => toggleItem(c, selectedCauses, setSelectedCauses)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCauses.includes(c)
-                    ? "katha-gradient text-primary-foreground"
-                    : "bg-card border border-border text-foreground"
-                }`}
-              >
+              <button key={c} onClick={() => toggleItem(c, selectedCauses, setSelectedCauses)} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCauses.includes(c) ? "katha-gradient text-primary-foreground" : "bg-card border border-border text-foreground"}`}>
                 {c}
               </button>
             ))}
@@ -111,15 +105,8 @@ const VolunteerOnboarding = () => {
               <p className="font-semibold text-foreground">Active Volunteer</p>
               <p className="text-xs text-muted-foreground">AI will match you with opportunities</p>
             </div>
-            <button
-              onClick={() => setIsActive(!isActive)}
-              className={`w-12 h-7 rounded-full transition-colors relative ${isActive ? "katha-gradient" : "bg-muted"}`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full bg-primary-foreground absolute top-1 transition-transform ${
-                  isActive ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
+            <button onClick={() => setIsActive(!isActive)} className={`w-12 h-7 rounded-full transition-colors relative ${isActive ? "katha-gradient" : "bg-muted"}`}>
+              <div className={`w-5 h-5 rounded-full bg-primary-foreground absolute top-1 transition-transform ${isActive ? "translate-x-6" : "translate-x-1"}`} />
             </button>
           </div>
         </div>
@@ -129,41 +116,22 @@ const VolunteerOnboarding = () => {
 
   return (
     <div className="min-h-screen bg-background px-6 py-8">
-      <motion.div
-        key={step}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="max-w-sm mx-auto"
-      >
+      <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-sm mx-auto">
         <div className="flex gap-1 mb-8">
           {steps.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1 flex-1 rounded-full transition-colors ${i <= step ? "katha-gradient" : "bg-muted"}`}
-            />
+            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= step ? "katha-gradient" : "bg-muted"}`} />
           ))}
         </div>
-
         <h1 className="text-2xl font-bold font-serif text-foreground mb-6">{steps[step].title}</h1>
         {steps[step].content}
-
         <div className="mt-8 flex gap-3">
-          {step > 0 && (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1 h-12 rounded-xl">
-              Back
-            </Button>
-          )}
+          {step > 0 && <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1 h-12 rounded-xl">Back</Button>}
           <Button
-            onClick={() => (step < steps.length - 1 ? setStep(step + 1) : navigate("/dashboard"))}
+            onClick={() => (step < steps.length - 1 ? setStep(step + 1) : handleFinish())}
+            disabled={saving}
             className="flex-1 h-12 rounded-xl katha-gradient text-primary-foreground font-semibold"
           >
-            {step < steps.length - 1 ? (
-              <>
-                Next <ChevronRight className="w-4 h-4 ml-1" />
-              </>
-            ) : (
-              "Get Started"
-            )}
+            {step < steps.length - 1 ? (<>Next <ChevronRight className="w-4 h-4 ml-1" /></>) : (saving ? "Saving..." : "Get Started")}
           </Button>
         </div>
       </motion.div>

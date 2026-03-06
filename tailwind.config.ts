@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -52,12 +52,14 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         katha: {
-          sage: "hsl(var(--katha-sage))",
+          mint: "hsl(var(--katha-mint))",
+          lime: "hsl(var(--katha-lime))",
           warm: "hsl(var(--katha-warm))",
           cream: "hsl(var(--katha-cream))",
           forest: "hsl(var(--katha-forest))",
           gold: "hsl(var(--katha-gold))",
           rose: "hsl(var(--katha-rose))",
+          sage: "hsl(var(--katha-sage))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

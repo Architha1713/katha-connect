@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -27,23 +29,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/role-selection" element={<RoleSelection />} />
-          <Route path="/onboarding" element={<VolunteerOnboarding />} />
-          <Route path="/dashboard" element={<VolunteerDashboard />} />
-          <Route path="/opportunities" element={<Opportunities />} />
-          <Route path="/active-services" element={<ActiveServices />} />
-          <Route path="/impact" element={<Impact />} />
-          <Route path="/stories" element={<StoryCircles />} />
-          <Route path="/kindness-radar" element={<KindnessRadar />} />
-          <Route path="/org-dashboard" element={<OrgDashboard />} />
-          <Route path="/corporate-dashboard" element={<CorporateDashboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><VolunteerOnboarding /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><VolunteerDashboard /></ProtectedRoute>} />
+            <Route path="/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
+            <Route path="/active-services" element={<ProtectedRoute><ActiveServices /></ProtectedRoute>} />
+            <Route path="/impact" element={<ProtectedRoute><Impact /></ProtectedRoute>} />
+            <Route path="/stories" element={<ProtectedRoute><StoryCircles /></ProtectedRoute>} />
+            <Route path="/kindness-radar" element={<ProtectedRoute><KindnessRadar /></ProtectedRoute>} />
+            <Route path="/org-dashboard" element={<ProtectedRoute><OrgDashboard /></ProtectedRoute>} />
+            <Route path="/corporate-dashboard" element={<ProtectedRoute><CorporateDashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
